@@ -1,0 +1,18 @@
+clc
+clear all 
+
+% Known parameters
+r = 402e3;                % Distance from the centre of the earth [m]
+tehta = 150;              % True Anomaly [º]
+v = 2.23*1000;            % Velocity of the meteorit [m/s]
+G = 6.67e-11              % Universal Gravitational constant
+Me = 5.972e24             % Weight of the Earth 
+mu = G*Me;                % Earth Gravitational Constant
+
+% Unknown parameters 
+h = syms ('h','real');    % Angular momentum
+eps = syms('eps','real')  % Eccentricity 
+a = syms('a','real')      % Apogee distance
+
+% Solving system 
+eq1 = r==h^2/mu*1/()
