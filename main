@@ -1,9 +1,10 @@
 clc
+close all
 clear all 
 
 % Known parameters
 r = 402e6;                  % Distance from the centre of the earth [m]
-theta = 150*pi/180;         % True Anomaly [rad]
+theta = deg2rad(150);       % True Anomaly [rad]
 v = 2.23e3;                 % Velocity of the meteorit [m/s]
 G = 6.67e-11;               % Universal Gravitational constant [m^3/kgs^2]
 Me = 5.972e24;              % Weight of the Earth [kg]
@@ -12,32 +13,54 @@ mu = G*Me;                  % Earth Gravitational Constant [m^3/s^2]
 %% 1. Eccentricity
 % Unknown parameters 
 syms h e
-
 % Defining system
 a = r*(1+e*cos(theta))/(e^2-1);     
-eps = v^2/2-mu/r;
-
+h = sqrt(mu*a*(e^2-1));
 % Solving system 
-eq1 = eps == mu/(2*a);
-sol_e = solve(eq1,e);
-
-Sol.e = double(sol_e(sol_e > 0));
-Sol.a = double(subs(a,e,Sol.e));
+eps  = v^2/2-mu/r == mu/(2*a);
+eSol = solve(eps,e);
 
 %% 2. Minimum distance
-rp = a*(1-e);
-Sol.rp = subs(rp,e,Sol.e);
+rp = h^2/mu/(1+e);
 
 %% 3. Spped at the closet approach
 syms vp
-eq2 = vp^2/2 - mu/rp == mu/(2*a); 
-sol_vp = solve(eq3, vp);
-Sol.vp = subs(vp,e,Sol.e)
+vpSol = solve(vp^2/2 - mu/rp == mu/(2*a), vp);
 
 %% 4. Flight time
 syms t M H 
-eq3 = t == h^3/mu^2*M/(e^2-1)^(3/2);
-eq4 = M == e*sinh(H) - H;
-eq5 = tan(theta/2) == sqrt(e+1)/sqrt(e-1)*tanh(H/2); 
-[sol_t, sol_M, sol_H] = solve([eq3, eq4, eq5], [t,M,H])
+eq1 = M == mu^2/h^3*(e^2-1)^(3/2)*t;
+eq2 = M == e*sinh(H) - H;
+eq3 = tan(theta/2) == sqrt(e+1)/sqrt(e-1)*tanh(H/2); 
+[tSol MSol HSol] = solve([eq1 eq2 eq3],[t M H]);
+
+%% SOLUTIONS
+Sol.e  = double(eSol(eSol > 0));
+Sol.a  = double(subs(a,e,Sol.e));
+Sol.h  = double(subs(h,[a e],[Sol.a Sol.e]));
+Sol.rp = double(subs(rp,[e h],[Sol.e Sol.h]));
+Sol.vp = double(subs(vpSol(1),[e a],[Sol.e Sol.a]));
+Sol.t  = double(subs(tSol,[e h],[Sol.e Sol.h]));
+Sol.M  = double(subs(MSol,[e h],[Sol.e Sol.h]));
+Sol.H  = double(subs(HSol,[e h],[Sol.e Sol.h]));
+
+%% PLOT
+% Hyperbola geometric definition
+a = Sol.a*1e-8;
+b = a*sqrt(Sol.e^2-1);
+focix = a+Sol.rp*1e-8;
+fociy = 0;
+
+% Function
+f = @(x,y) x^2/a^2 - y^2/b^2;
+
+hyp = fcontour(f,'LevelList',1)
+hold on;        
+asym = fcontour(f,'LevelList',0)
+asym.LineStyle = '--';
+foci = plot(focix,fociy,'o')
+
+grid on;        grid minor
+xlim([0 6]);    ylim([-3 3])
+
 
