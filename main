@@ -9,6 +9,7 @@ G = 6.67e-11;               % Universal Gravitational constant
 Me = 5.972e24;              % Weight of the Earth 
 mu = G*Me;                  % Earth Gravitational Constant
 
+%% 1. Eccentricity
 % Unknown parameters 
 syms h e
 
@@ -23,3 +24,18 @@ eq2 = r==h^2/mu*1/(1+e*cos(theta));
 
 e = double(sol_e)
 h = double(sol_h)
+
+%% 2. Minimum distance
+rp = mu^2/2*(1-e^2)/h^2
+
+%% 3. Spped at the closet approach
+syms vp
+eq3 = vp^2/2 - mu/rp == mu^2/2*(1-e^2)/h^2; 
+sol_vp = solve(eq3, vp) 
+
+%% 4. Flight time
+sym t M H 
+eq4 = t==h^3/mu^2*M/(e^2-1)^(3/2);
+eq5 = M == e*sinh(H) - H;
+eq6 = tan(theta/2) == sqrt(e+1)/sqrt(e-1)*tanh(H/2); 
+[sol_t, sol_M, sol_H] = solve([eq4, eq5, eq6], [t,M,H])
